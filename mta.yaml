@@ -1,0 +1,94 @@
+_schema-version: "3.2"
+ID: btplpshellcai
+description: Shell
+version: 0.0.1
+modules:
+- name: btplpshellcai-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: btplpshellcai-destination-service
+    parameters:
+      content-target: true
+  - name: btplpshellcai-repo-host
+    parameters:
+      service-key:
+        name: btplpshellcai-repo-host-key
+  - name: btplpshellcai-uaa
+    parameters:
+      service-key:
+        name: btplpshellcai-uaa-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: btplpshellcai_html_repo_host
+          ServiceInstanceName: btplpshellcai-html5-srv
+          ServiceKeyName: btplpshellcai-repo-host-key
+          sap.cloud.service: btplpshellcai
+        - Authentication: OAuth2UserTokenExchange
+          Name: btplpshellcai_uaa
+          ServiceInstanceName: btplpshellcai-xsuaa-srv
+          ServiceKeyName: btplpshellcai-uaa-key
+          sap.cloud.service: btplpshellcai
+        existing_destinations_policy: ignore
+  build-parameters:
+    no-source: true
+- name: btplpshellcai-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: btplpshellcai-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - btplpshellcai.zip
+      name: btplpshellcai
+      target-path: resources/
+- name: btplpshellcai
+  type: html5
+  path: .
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: btplpshellcai-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: btplpshellcai-destination-service
+    service-plan: lite
+- name: btplpshellcai-uaa
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: btplpshellcai-xsuaa-srv
+    service-plan: application
+- name: btplpshellcai-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: btplpshellcai-html5-srv
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
