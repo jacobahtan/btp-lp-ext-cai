@@ -1,3 +1,12 @@
+## How was this project created?
+create from template
+html5 fiori freestyle app
+modify component.js
+modify manifest.json
+npm run deploy-config > cf > none
+build mta deploy
+flp sync > add to content > Refresh
+
 ## Application Details
 |               |
 | ------------- |
